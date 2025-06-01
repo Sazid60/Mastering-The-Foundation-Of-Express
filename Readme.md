@@ -262,3 +262,83 @@ app.post("/todos/create-todo", (req: Request, res: Response) => {
 
 export default app;
 ```
+
+## 14-4 What is Params & Queries
+
+- We can query data in two different way.
+
+```
+https://jsonplaceholder.typicode.com/posts?userId=1
+```
+
+```
+https://jsonplaceholder.typicode.com/posts/6
+```
+
+#### We can find object using query parameter
+
+```
+http://localhost:5000/todos?title=Morning&body=Node.js
+```
+
+- we can find this using req.query
+
+```js
+req.query;
+```
+
+![alt text](image-4.png)
+
+#### We can find object using Dynamic Id
+
+```
+http://localhost:5000/todos/Morning
+```
+
+- we have to receive inside the param for this
+
+```js
+app.get("/todos/:title", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(req.params);
+  res.json(data);
+});
+```
+
+![alt text](image-5.png)
+
+- we can merge them both
+
+```
+http://localhost:5000/todos/morning?body=Node.js
+```
+
+```js
+app.get("/todos/:title", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log("From Params", req.params);
+  console.log("From Query", req.query);
+  res.json(data);
+});
+```
+
+- we can add multiple query with this.
+
+```
+http://localhost:5000/todos/morning?title=sazid&body=Node.js
+```
+
+- lets see multi dynamic route
+
+```
+http://localhost:5000/todos/morning/Node.js?title=sazid&body=Node.js
+```
+
+```js
+app.get("/todos/:title/:body", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log("From Params", req.params);
+  console.log("From Query", req.query);
+  res.json(data);
+});
+```
