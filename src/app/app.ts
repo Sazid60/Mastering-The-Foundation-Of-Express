@@ -1,6 +1,4 @@
-import express, { Application, Request, Response } from "express";
-import fs from "fs";
-import path from "path";
+import express, { Application, NextFunction, Request, Response } from "express";
 import { todosRouter } from "./todos/todos.routes";
 
 const app: Application = express();
@@ -10,9 +8,21 @@ app.use(express.json());
 
 app.use("/todos", todosRouter);
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to Todos App!");
-});
+app.get(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    res.send("Consoling From Middleware");
+    console.log({
+      url: req.url,
+      method: req.method,
+      header: req.header,
+    });
+    next();
+  },
+  (req: Request, res: Response) => {
+    res.send("Welcome to Todos App!");
+  }
+);
 
 export default app;
 

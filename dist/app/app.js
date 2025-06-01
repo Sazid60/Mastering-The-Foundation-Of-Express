@@ -9,7 +9,15 @@ const app = (0, express_1.default)();
 // parser
 app.use(express_1.default.json());
 app.use("/todos", todos_routes_1.todosRouter);
-app.get("/", (req, res) => {
+app.get("/", (req, res, next) => {
+    res.send("Consoling From Middleware");
+    console.log({
+        url: req.url,
+        method: req.method,
+        header: req.header,
+    });
+    next();
+}, (req, res) => {
     res.send("Welcome to Todos App!");
 });
 exports.default = app;
