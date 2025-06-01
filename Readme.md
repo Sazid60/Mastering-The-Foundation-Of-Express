@@ -120,6 +120,12 @@ const bootstrap = async () => {
 bootstrap();
 ```
 
+- **Step-11 :** Run the Server File
+
+```
+node ./dist/app/server.js
+```
+
 #### Final Files
 
 - app.ts
@@ -159,6 +165,100 @@ const bootstrap = async () => {
 bootstrap();
 ```
 
+-
 - server **open, close, server error handling** and other works will be done in server file
 - All the **routing related works and handling middleware and route related error handling** will be done in app file.
 - **Crud Operation and database related** works will be in app folder.
+
+## 14-3 What is parsers, request and response object
+
+- **Step-12 :** Add a watcher for the typescript file which will watch all the time for the changes of typescript. If any changes found it automatically transpile the ts file to js file. now split the terminal and run the server again
+- The req (request) and res (response) are the exact same objects that Node provides,
+
+```
+tsc -w
+```
+
+![alt text](image-2.png)
+
+- **Step-13 :** For Restarting The server automatically we have to use nodemon package. Nodemon watches the js file changes. if any changes is happening it restarts the server.
+
+[Nodemon](https://www.npmjs.com/package/nodemon)
+
+```
+npm install -d nodemon
+```
+
+- **Step-14 :** Install The Nodemon Globally
+
+```
+npm install -g nodemon
+```
+
+- **Step-15 :** Run The Nodemon
+
+```
+ nodemon ./dist/app/server.js
+```
+
+- **Step-15 :** We can Write a script for the nodemon so that we do not have to write the command
+
+```json
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "nodemon ./dist/app/server.js"
+  },
+```
+
+-
+- **Step-16 :** Run the Server using this command
+
+```
+npm run dev
+```
+
+- If we send json data inside a body we have to parse the data. express gives us some parser. we are sending json data, express wont understand the data needs to be parsed. there is need need to manually do parsing json data. This is builtin middleware function. This takes the data inside the body and parse them to convert in object.
+
+[Express Json parser](https://expressjs.com/en/5x/api.html#express.json)
+
+```js
+app.use(express.json());
+```
+
+- As this json parser is a middleware function. we have to use this using `app.use()`
+
+- there are also some more middleware. some of them are working as a parser.
+
+![alt text](image-3.png)
+
+- Express is entirely runs on middleware. express functions are connected to each other and each function is a middleware.
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+const app: Application = express();
+app.use(express.json());
+
+const filePath = path.join(__dirname, "../../db/todos.json");
+
+// console.log(filePath);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+app.get("/todos", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json(data);
+});
+
+app.post("/todos/create-todo", (req: Request, res: Response) => {
+  const { title, body } = req.body;
+
+  res.json("Created");
+});
+
+export default app;
+```
