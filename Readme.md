@@ -560,3 +560,120 @@ bootstrap();
 ```
 
 - What will do the operation inside in the separated files not in the server file.
+
+## 14-8 Creating and Rendering Todos
+
+- Moved mongodb Uri To config file
+- Server.js
+
+```ts
+import app from "./app";
+import { client } from "../config/mongodb";
+
+let server;
+const port = 5000;
+
+const bootstrap = async () => {
+  await client.connect();
+  console.log("Connected To Mongodb");
+  server = app.listen(port, () => {
+    console.log(`Example App Listening On Port ${port}`);
+  });
+};
+
+bootstrap();
+```
+
+- Now lets see what is in Uri
+- config/mongodb.ts
+
+```ts
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+const uri =
+  "mongodb+srv://<db-name>:<db-password>@cluster0.cjbmdks.mongodb.net/todosDB?retryWrites=true&w=majority&appName=Cluster0";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+export const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+```
+
+- Update creation of a Todo using mongodb (todos.routes.ts)
+
+```ts
+todosRouter.post("/create-todo", async (req: Request, res: Response) => {
+  const { title, description, priority } = req.body;
+
+  const db = await client.db("todosDB");
+  const collection = await db.collection("todos");
+  // console.log(db);
+  await collection.insertOne({
+    title: title,
+    description: description,
+    priority: priority,
+    isCompleted: false,
+  });
+
+  const cursor = collection.find({});
+  const todos = await cursor.toArray();
+
+  res.json(todos);
+});
+```
+
+- Get all the todo(todos.routes.ts)
+
+```ts
+todosRouter.get("/", async (req: Request, res: Response) => {
+  const db = await client.db("todosDB");
+  const collection = await db.collection("todos");
+
+  const cursor = collection.find({});
+  const todos = await cursor.toArray();
+
+  res.json(todos);
+});
+```
+
+- final todos.routes.ts code
+
+```ts
+import express, { Request, Response } from "express";
+
+import { client } from "../../config/mongodb";
+
+export const todosRouter = express.Router();
+
+todosRouter.get("/", async (req: Request, res: Response) => {
+  const db = await client.db("todosDB");
+  const collection = await db.collection("todos");
+
+  const cursor = collection.find({});
+  const todos = await cursor.toArray();
+
+  res.json(todos);
+});
+
+todosRouter.post("/create-todo", async (req: Request, res: Response) => {
+  const { title, description, priority } = req.body;
+
+  const db = await client.db("todosDB");
+  const collection = await db.collection("todos");
+  // console.log(db);
+  await collection.insertOne({
+    title: title,
+    description: description,
+    priority: priority,
+    isCompleted: false,
+  });
+
+  const cursor = collection.find({});
+  const todos = await cursor.toArray();
+
+  res.json(todos);
+});
+```
