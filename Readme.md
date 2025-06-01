@@ -759,3 +759,119 @@ app.get(
   }
 );
 ```
+
+## 14-11 Error Handling in Express: 404s & Global Error Handler
+
+- For handling error we will use try catch block
+
+```ts
+app.get("/", async (req: Request, res: Response) => {
+  try {
+    console.log(something);
+    res.send("Welcome to Todos App!");
+  } catch (error) {
+    console.log("Error:", error);
+    res.status(400).json({
+      message: "Something went Wrong !",
+      error,
+    });
+  }
+});
+```
+
+#### Global Error Handler
+
+- this goes to express global error handler.
+- We can Customize the express global error handler.
+- We have to declare the global error handler at the bottom of the codes and it takes 4 parameters
+
+```ts
+// Custom global error handler
+app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+  if (error) {
+    console.log("Error:", error);
+    res.status(400).json({
+      message: "Something went Wrong From Global error handler!",
+      error,
+    });
+  }
+});
+```
+
+- Final app.ts code
+
+```ts
+import express, { Application, NextFunction, Request, Response } from "express";
+import { todosRouter } from "./todos/todos.routes";
+
+const app: Application = express();
+
+// parser
+app.use(express.json());
+
+app.use("/todos", todosRouter);
+
+app.get(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    console.log("Consoling From Middleware");
+    console.log({
+      url: req.url,
+      method: req.method,
+      header: req.header,
+    });
+    next();
+  },
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log(something);
+      res.send("Welcome to Todos App!");
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+app.get("/error", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log(something);
+    res.send("Welcome to Todos App!");
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Custom global error handler
+
+app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+  if (error) {
+    console.log("Error:", error);
+    res.status(400).json({
+      message: "Something went Wrong From Global error handler!",
+      error,
+    });
+  }
+});
+
+export default app;
+```
+
+- Global Error Handler should be always at the end of all codes.
+
+#### Rote Error handler
+
+- lets make a error handler for handling the undefined routes
+- this is not error its just a mismatch of the routes. so we do not have to send to global error handler
+
+```ts
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({
+    message: "Route Not Found !",
+  });
+});
+```
+
+- Route error handler will also be at the bottom of the codes but above the Global error handler.
+
+#### Global error handler error happening after matching routes
+
+#### Route error handler means of not matching the routes. For this reason its on top of global error handler.
