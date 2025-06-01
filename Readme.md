@@ -469,3 +469,94 @@ export default app;
 // [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
 //[todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
 ```
+
+## 14-7 Connecting MongoDB to express
+
+sazid-mongo
+
+- lets Integrate Mongodb
+
+- **Step-1 :** Install MongoDB
+
+```
+npm install mongodb
+```
+
+-
+- **Step-2 :** Create a Mongodb Ui in server.ts
+
+```js
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+const uri =
+  "mongodb+srv://sazid-mongo:sazid-mongo@cluster0.cjbmdks.mongodb.net/todosDB?retryWrites=true&w=majority&appName=Cluster0";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+```
+
+![alt text](image-6.png)
+
+- this how we set the database name.
+
+- **Step-3 :** Lets Connect the client Now
+
+```ts
+const bootstrap = async () => {
+  await client.connect(); // used this to connect
+  console.log("Connected To Mongodb");
+  server = app.listen(port, () => {
+    console.log(`Example App Listening On Port ${port}`);
+  });
+};
+
+bootstrap();
+```
+
+- now lets test connecting the db and insert one data
+
+```js
+import { MongoClient, ServerApiVersion } from "mongodb";
+import app from "./app";
+
+let server;
+const port = 5000;
+
+const uri =
+  "mongodb+srv://sazid-mongo:sazid-mongo@cluster0.cjbmdks.mongodb.net/todosDB?retryWrites=true&w=majority&appName=Cluster0";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+const bootstrap = async () => {
+  await client.connect();
+  console.log("Connected To Mongodb");
+
+  // testing_____________________________________
+  const db = await client.db("todosDB");
+  // console.log(db);
+  const collection = await db.collection("todos").insertOne({
+    title: "MongoDB",
+    body: "Wow Level Mongodb",
+  });
+  // console.log(collection);
+  // _____________________________________________testing
+  server = app.listen(port, () => {
+    console.log(`Example App Listening On Port ${port}`);
+  });
+};
+
+bootstrap();
+```
+
+- What will do the operation inside in the separated files not in the server file.
