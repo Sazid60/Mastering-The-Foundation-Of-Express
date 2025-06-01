@@ -734,3 +734,28 @@ todosRouter.put("/update-todo/:id", async (req: Request, res: Response) => {
   res.json(updatedTodo);
 });
 ```
+
+## 14-10 Understanding Middleware in Express
+
+- Express is standing based on Middleware.
+- Middleware works like in the middle of operation it will do some special task.
+- Lets make a Custom logger middleware.
+- For Custom, Middleware we have to tell `nextFunction` for passing to next middleware.
+
+```ts
+app.get(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    res.send("Consoling From Middleware");
+    console.log({
+      url: req.url,
+      method: req.method,
+      header: req.header,
+    });
+    next();
+  },
+  (req: Request, res: Response) => {
+    res.send("Welcome to Todos App!");
+  }
+);
+```
