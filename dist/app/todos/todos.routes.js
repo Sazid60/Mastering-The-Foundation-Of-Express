@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.todosRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const mongodb_1 = require("../../config/mongodb");
+const mongodb_2 = require("mongodb");
 exports.todosRouter = express_1.default.Router();
 exports.todosRouter.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const db = yield mongodb_1.client.db("todosDB");
@@ -38,12 +39,31 @@ exports.todosRouter.post("/create-todo", (req, res) => __awaiter(void 0, void 0,
     const todos = yield cursor.toArray();
     res.json(todos);
 }));
-// todosRouter.get(":/title", (req: Request, res: Response) => {
-//   res.json("");
-// });
-// todosRouter.put("/update-todo/:title", (req: Request, res: Response) => {
-//   res.json("");
-// });
-// todosRouter.delete("delete-todo/:title", (req: Request, res: Response) => {
-//   res.json("");
-// });
+exports.todosRouter.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log(id);
+    const db = yield mongodb_1.client.db("todosDB");
+    const collection = yield db.collection("todos");
+    const todo = yield collection.findOne({ _id: new mongodb_2.ObjectId(id) });
+    res.json(todo);
+}));
+exports.todosRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log(id);
+    const db = yield mongodb_1.client.db("todosDB");
+    const collection = yield db.collection("todos");
+    yield collection.deleteOne({ _id: new mongodb_2.ObjectId(id) });
+    res.json({
+        message: "deleted Successfully",
+    });
+}));
+exports.todosRouter.put("/update-todo/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const db = yield mongodb_1.client.db("todosDB");
+    const collection = yield db.collection("todos");
+    const { title, description, priority, isCompleted } = req.body;
+    const id = req.params.id;
+    //    filter
+    const filter = { _id: new mongodb_2.ObjectId(id) };
+    const updatedTodo = yield collection.updateOne(filter, { $set: { title, description, priority, isCompleted } }, { upsert: true });
+    res.json(updatedTodo);
+}));
