@@ -396,7 +396,76 @@ export default app;
 ```
 
 - [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
-- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
 
 - Here App is the main driver compartment or engine. and others are the compartments set one by one.
 - Fist the compartments will be set one by one and then if "/todos" request comes app will check where to go and which compartment will do the work, as we have defined that if any "/todos" related works are coming we have to use todoRouter, app will one by one check and jump from one to another and will look for [todosRouter]. when its fount app will enter there and do the operation.
+
+- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+- As todosRouter work is found app hands over the works to [todosRouter] and then this does the works matching inside starting same as app.
+
+## 14-6 Organizing Codes and Splitting The Routes
+
+- Lets split the works based no the services.
+
+- todos.routes.ts
+
+```ts
+import express, { Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+export const todosRouter = express.Router();
+const filePath = path.join(__dirname, "../../../db/todos.json");
+
+todosRouter.get("/", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json({
+    message: "All Todos From Todos Router",
+    data,
+  });
+});
+
+todosRouter.post("/create-todo", (req: Request, res: Response) => {
+  const { title, body } = req.body;
+
+  res.json("Created");
+});
+
+todosRouter.get(":/title", (req: Request, res: Response) => {
+  res.json("");
+});
+
+todosRouter.put("/update-todo/:title", (req: Request, res: Response) => {
+  res.json("");
+});
+
+todosRouter.delete("delete-todo/:title", (req: Request, res: Response) => {
+  res.json("");
+});
+```
+
+- app.ts
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+import { todosRouter } from "./todos/todos.routes";
+
+const app: Application = express();
+
+// parser
+app.use(express.json());
+
+app.use("/todos", todosRouter);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+
+export default app;
+
+// [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
+//[todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+```
