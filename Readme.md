@@ -120,6 +120,12 @@ const bootstrap = async () => {
 bootstrap();
 ```
 
+- **Step-11 :** Run the Server File
+
+```
+node ./dist/app/server.js
+```
+
 #### Final Files
 
 - app.ts
@@ -159,6 +165,238 @@ const bootstrap = async () => {
 bootstrap();
 ```
 
+-
 - server **open, close, server error handling** and other works will be done in server file
 - All the **routing related works and handling middleware and route related error handling** will be done in app file.
 - **Crud Operation and database related** works will be in app folder.
+
+## 14-3 What is parsers, request and response object
+
+- **Step-12 :** Add a watcher for the typescript file which will watch all the time for the changes of typescript. If any changes found it automatically transpile the ts file to js file. now split the terminal and run the server again
+- The req (request) and res (response) are the exact same objects that Node provides,
+
+```
+tsc -w
+```
+
+![alt text](image-2.png)
+
+- **Step-13 :** For Restarting The server automatically we have to use nodemon package. Nodemon watches the js file changes. if any changes is happening it restarts the server.
+
+[Nodemon](https://www.npmjs.com/package/nodemon)
+
+```
+npm install -d nodemon
+```
+
+- **Step-14 :** Install The Nodemon Globally
+
+```
+npm install -g nodemon
+```
+
+- **Step-15 :** Run The Nodemon
+
+```
+ nodemon ./dist/app/server.js
+```
+
+- **Step-15 :** We can Write a script for the nodemon so that we do not have to write the command
+
+```json
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "nodemon ./dist/app/server.js"
+  },
+```
+
+-
+- **Step-16 :** Run the Server using this command
+
+```
+npm run dev
+```
+
+- If we send json data inside a body we have to parse the data. express gives us some parser. we are sending json data, express wont understand the data needs to be parsed. there is need need to manually do parsing json data. This is builtin middleware function. This takes the data inside the body and parse them to convert in object.
+
+[Express Json parser](https://expressjs.com/en/5x/api.html#express.json)
+
+```js
+app.use(express.json());
+```
+
+- As this json parser is a middleware function. we have to use this using `app.use()`
+
+- there are also some more middleware. some of them are working as a parser.
+
+![alt text](image-3.png)
+
+- Express is entirely runs on middleware. express functions are connected to each other and each function is a middleware.
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+const app: Application = express();
+app.use(express.json());
+
+const filePath = path.join(__dirname, "../../db/todos.json");
+
+// console.log(filePath);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+app.get("/todos", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json(data);
+});
+
+app.post("/todos/create-todo", (req: Request, res: Response) => {
+  const { title, body } = req.body;
+
+  res.json("Created");
+});
+
+export default app;
+```
+
+## 14-4 What is Params & Queries
+
+- We can query data in two different way.
+
+```
+https://jsonplaceholder.typicode.com/posts?userId=1
+```
+
+```
+https://jsonplaceholder.typicode.com/posts/6
+```
+
+#### We can find object using query parameter
+
+```
+http://localhost:5000/todos?title=Morning&body=Node.js
+```
+
+- we can find this using req.query
+
+```js
+req.query;
+```
+
+![alt text](image-4.png)
+
+#### We can find object using Dynamic Id
+
+```
+http://localhost:5000/todos/Morning
+```
+
+- we have to receive inside the param for this
+
+```js
+app.get("/todos/:title", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(req.params);
+  res.json(data);
+});
+```
+
+![alt text](image-5.png)
+
+- we can merge them both
+
+```
+http://localhost:5000/todos/morning?body=Node.js
+```
+
+```js
+app.get("/todos/:title", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log("From Params", req.params);
+  console.log("From Query", req.query);
+  res.json(data);
+});
+```
+
+- we can add multiple query with this.
+
+```
+http://localhost:5000/todos/morning?title=sazid&body=Node.js
+```
+
+- lets see multi dynamic route
+
+```
+http://localhost:5000/todos/morning/Node.js?title=sazid&body=Node.js
+```
+
+```js
+app.get("/todos/:title/:body", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log("From Params", req.params);
+  console.log("From Query", req.query);
+  res.json(data);
+});
+```
+
+## 14-5 Routing In Express
+
+- Express gave us a middleware for routing.
+- we will separate each service into different parts.And to do this we have to use express `Router Middleware`
+
+```js
+const todosRouter = express.Router();
+```
+
+- here this just a child of the app.
+- we can do get, post, put, delete etc with it. Its a minimal app itself. allows like `todosRouter.get()`
+- when anyone wants to work with todos app will tell us that bro you go to todosRouter app.
+- Js works like it does the works line by line from top to bottom.
+
+#### Lets see how to create a route and how it works.
+
+1. `const todosRouter = express.Router();` Creating the todosRouter.
+2. `app.use("/todos", todosRouter); ` telling app to direct the request to todosRouter when "/todos" request is found.
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+const app: Application = express();
+
+// parser
+app.use(express.json());
+
+const todosRouter = express.Router();
+app.use("/todos", todosRouter); // telling app to direct the request to todosRouter if and "/request is found"
+
+const filePath = path.join(__dirname, "../../db/todos.json");
+
+// console.log(filePath);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+
+todosRouter.get("/all-todos", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json({
+    message: "All Todos From Todos Router",
+    data,
+  });
+});
+
+export default app;
+```
+
+- [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
+- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+
+- Here App is the main driver compartment or engine. and others are the compartments set one by one.
+- Fist the compartments will be set one by one and then if "/todos" request comes app will check where to go and which compartment will do the work, as we have defined that if any "/todos" related works are coming we have to use todoRouter, app will one by one check and jump from one to another and will look for [todosRouter]. when its fount app will enter there and do the operation.
