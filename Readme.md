@@ -342,3 +342,61 @@ app.get("/todos/:title/:body", (req: Request, res: Response) => {
   res.json(data);
 });
 ```
+
+## 14-5 Routing In Express
+
+- Express gave us a middleware for routing.
+- we will separate each service into different parts.And to do this we have to use express `Router Middleware`
+
+```js
+const todosRouter = express.Router();
+```
+
+- here this just a child of the app.
+- we can do get, post, put, delete etc with it. Its a minimal app itself. allows like `todosRouter.get()`
+- when anyone wants to work with todos app will tell us that bro you go to todosRouter app.
+- Js works like it does the works line by line from top to bottom.
+
+#### Lets see how to create a route and how it works.
+
+1. `const todosRouter = express.Router();` Creating the todosRouter.
+2. `app.use("/todos", todosRouter); ` telling app to direct the request to todosRouter when "/todos" request is found.
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+const app: Application = express();
+
+// parser
+app.use(express.json());
+
+const todosRouter = express.Router();
+app.use("/todos", todosRouter); // telling app to direct the request to todosRouter if and "/request is found"
+
+const filePath = path.join(__dirname, "../../db/todos.json");
+
+// console.log(filePath);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+
+todosRouter.get("/all-todos", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json({
+    message: "All Todos From Todos Router",
+    data,
+  });
+});
+
+export default app;
+```
+
+- [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
+- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+
+- Here App is the main driver compartment or engine. and others are the compartments set one by one.
+- Fist the compartments will be set one by one and then if "/todos" request comes app will check where to go and which compartment will do the work, as we have defined that if any "/todos" related works are coming we have to use todoRouter, app will one by one check and jump from one to another and will look for [todosRouter]. when its fount app will enter there and do the operation.
