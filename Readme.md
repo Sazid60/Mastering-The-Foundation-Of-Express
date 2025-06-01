@@ -396,7 +396,167 @@ export default app;
 ```
 
 - [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
-- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
 
 - Here App is the main driver compartment or engine. and others are the compartments set one by one.
 - Fist the compartments will be set one by one and then if "/todos" request comes app will check where to go and which compartment will do the work, as we have defined that if any "/todos" related works are coming we have to use todoRouter, app will one by one check and jump from one to another and will look for [todosRouter]. when its fount app will enter there and do the operation.
+
+- [todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+- As todosRouter work is found app hands over the works to [todosRouter] and then this does the works matching inside starting same as app.
+
+## 14-6 Organizing Codes and Splitting The Routes
+
+- Lets split the works based no the services.
+
+- todos.routes.ts
+
+```ts
+import express, { Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+
+export const todosRouter = express.Router();
+const filePath = path.join(__dirname, "../../../db/todos.json");
+
+todosRouter.get("/", (req: Request, res: Response) => {
+  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
+  console.log(data);
+  res.json({
+    message: "All Todos From Todos Router",
+    data,
+  });
+});
+
+todosRouter.post("/create-todo", (req: Request, res: Response) => {
+  const { title, body } = req.body;
+
+  res.json("Created");
+});
+
+todosRouter.get(":/title", (req: Request, res: Response) => {
+  res.json("");
+});
+
+todosRouter.put("/update-todo/:title", (req: Request, res: Response) => {
+  res.json("");
+});
+
+todosRouter.delete("delete-todo/:title", (req: Request, res: Response) => {
+  res.json("");
+});
+```
+
+- app.ts
+
+```ts
+import express, { Application, Request, Response } from "express";
+import fs from "fs";
+import path from "path";
+import { todosRouter } from "./todos/todos.routes";
+
+const app: Application = express();
+
+// parser
+app.use(express.json());
+
+app.use("/todos", todosRouter);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome to Todos App!");
+});
+
+export default app;
+
+// [app]-[express.json()]-[todosRouter]-[Root Route "/"]-[GET "/todos"]-[POST Create ToDo]
+//[todosRouter]-[get all todos /todos GET]-[create todo /todos/create-todo POST todo]
+```
+
+## 14-7 Connecting MongoDB to express
+
+sazid-mongo
+
+- lets Integrate Mongodb
+
+- **Step-1 :** Install MongoDB
+
+```
+npm install mongodb
+```
+
+-
+- **Step-2 :** Create a Mongodb Ui in server.ts
+
+```js
+import { MongoClient, ServerApiVersion } from "mongodb";
+
+const uri =
+  "mongodb+srv://sazid-mongo:sazid-mongo@cluster0.cjbmdks.mongodb.net/todosDB?retryWrites=true&w=majority&appName=Cluster0";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+```
+
+![alt text](image-6.png)
+
+- this how we set the database name.
+
+- **Step-3 :** Lets Connect the client Now
+
+```ts
+const bootstrap = async () => {
+  await client.connect(); // used this to connect
+  console.log("Connected To Mongodb");
+  server = app.listen(port, () => {
+    console.log(`Example App Listening On Port ${port}`);
+  });
+};
+
+bootstrap();
+```
+
+- now lets test connecting the db and insert one data
+
+```js
+import { MongoClient, ServerApiVersion } from "mongodb";
+import app from "./app";
+
+let server;
+const port = 5000;
+
+const uri =
+  "mongodb+srv://sazid-mongo:sazid-mongo@cluster0.cjbmdks.mongodb.net/todosDB?retryWrites=true&w=majority&appName=Cluster0";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+const bootstrap = async () => {
+  await client.connect();
+  console.log("Connected To Mongodb");
+
+  // testing_____________________________________
+  const db = await client.db("todosDB");
+  // console.log(db);
+  const collection = await db.collection("todos").insertOne({
+    title: "MongoDB",
+    body: "Wow Level Mongodb",
+  });
+  // console.log(collection);
+  // _____________________________________________testing
+  server = app.listen(port, () => {
+    console.log(`Example App Listening On Port ${port}`);
+  });
+};
+
+bootstrap();
+```
+
+- What will do the operation inside in the separated files not in the server file.
